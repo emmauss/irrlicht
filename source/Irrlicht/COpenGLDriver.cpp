@@ -21,7 +21,8 @@
 #include "COpenGLCoreRenderTarget.h"
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-#include <SDL/SDL.h>
+#include "CIrrDeviceSDL.h"
+#include <SDL.h>
 #endif
 
 namespace irr
@@ -314,7 +315,7 @@ bool COpenGLDriver::endScene()
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 	if ( DeviceType == EIDT_SDL )
 	{
-		SDL_GL_SwapBuffers();
+		SDL_GL_SwapWindow(SDLDevice->getWindow());
 		status = true;
 	}
 #endif

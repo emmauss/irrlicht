@@ -9,6 +9,9 @@
 #define IRRLICHT_VERSION_MT_REVISION 3
 #define IRRLICHT_VERSION_MT "mt3"
 
+#ifndef __SWITCH__
+#define __SWITCH__
+#endif
 //! Irrlicht SDK Version
 #define IRRLICHT_VERSION_MAJOR 1
 #define IRRLICHT_VERSION_MINOR 9
@@ -47,13 +50,13 @@
 //! Example: NO_IRR_COMPILE_WITH_X11_ would disable X11
 
 //! Uncomment this line to compile with the SDL device
-//#define _IRR_COMPILE_WITH_SDL_DEVICE_
+#define _IRR_COMPILE_WITH_SDL_DEVICE_
 #ifdef NO_IRR_COMPILE_WITH_SDL_DEVICE_
 #undef _IRR_COMPILE_WITH_SDL_DEVICE_
 #endif
 
 //! Comment this line to compile without the fallback console device.
-#define _IRR_COMPILE_WITH_CONSOLE_DEVICE_
+//#define _IRR_COMPILE_WITH_CONSOLE_DEVICE_
 #ifdef NO_IRR_COMPILE_WITH_CONSOLE_DEVICE_
 #undef _IRR_COMPILE_WITH_CONSOLE_DEVICE_
 #endif
@@ -136,8 +139,8 @@
 #ifndef _IRR_SOLARIS_PLATFORM_
 #define _IRR_LINUX_PLATFORM_
 #endif
-#define _IRR_POSIX_API_
-#define _IRR_COMPILE_WITH_X11_DEVICE_
+//#define _IRR_POSIX_API_
+//#define _IRR_COMPILE_WITH_X11_DEVICE_
 #endif
 
 

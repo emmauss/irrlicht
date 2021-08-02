@@ -2,6 +2,7 @@ option(BUILD_SHARED_LIBS "Build shared library" TRUE)
 
 # Compiler flags
 
+add_definitions(-DNO_IRR_COMPILE_WITH_SDL_DEVICE_)
 add_definitions(-DIRRLICHT_EXPORTS)
 if(NOT BUILD_SHARED_LIBS)
 	add_definitions(-D_IRR_STATIC_LIB_)
@@ -28,6 +29,10 @@ find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(PNG REQUIRED)
 
+set(SDL2_INCLUDEDIR "/opt/devkitpro/portlibs/switch/include/")
+include_directories("${SDL2_INCLUDEDIR}")
+set(SDL2_INCLUDEDIR "/opt/devkitpro/portlibs/switch/include/SDL2")
+include_directories("${SDL2_INCLUDEDIR}")
 # To configure the features available in this Irrlicht build please edit
 # include/IrrCompileConfig.h and re-run CMake from a clean state
 include(CheckSymbolExists)
@@ -102,6 +107,8 @@ set(link_libs
 	"$<$<PLATFORM_ID:Windows>:winmm>"
 	${X11_X11_LIB}
 	${X11_Xxf86vm_LIB}
+	-lSDL2
+	-lglad
 )
 
 # Source files
@@ -131,8 +138,22 @@ add_library(IRROBJ OBJECT
 	CDefaultSceneNodeFactory.cpp
 )
 
+add_library(IRROTHEROBJ OBJECT
+	CIrrDeviceSDL.cpp
+	CIrrDeviceConsole.cpp
+	CIrrDeviceStub.cpp
+	CIrrDeviceWin32.cpp
+	CIrrDeviceFB.cpp
+	CLogger.cpp
+	COSOperator.cpp
+	Irrlicht.cpp
+	os.cpp
+	leakHunter.cpp
+	CProfiler.cpp
+	utf8.cpp
+)
+
 set(IRRDRVROBJ
-	CNullDriver.cpp
 	COpenGLCacheHandler.cpp
 	COpenGLDriver.cpp
 	COpenGLNormalMapRenderer.cpp
@@ -173,6 +194,10 @@ add_library(IRRVIDEOOBJ OBJECT
 )
 
 add_library(IRRIOOBJ OBJECT
+	CTarReader.cpp
+	irrXML.cpp
+	CXMLReader.cpp
+	CXMLWriter.cpp
 	CFileList.cpp
 	CFileSystem.cpp
 	CLimitReadFile.cpp
@@ -182,22 +207,6 @@ add_library(IRRIOOBJ OBJECT
 	CZipReader.cpp
 	CMountPointReader.cpp
 	CAttributes.cpp
-)
-
-add_library(IRROTHEROBJ OBJECT
-	CIrrDeviceSDL.cpp
-	CIrrDeviceLinux.cpp
-	CIrrDeviceConsole.cpp
-	CIrrDeviceStub.cpp
-	CIrrDeviceWin32.cpp
-	CIrrDeviceFB.cpp
-	CLogger.cpp
-	COSOperator.cpp
-	Irrlicht.cpp
-	os.cpp
-	leakHunter.cpp
-	CProfiler.cpp
-	utf8.cpp
 )
 
 if(ANDROID)

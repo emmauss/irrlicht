@@ -4,6 +4,11 @@
 
 #include "IrrCompileConfig.h"
 
+#ifndef __C_IRR_DEVICE_SDL_H_INCLUDED__
+#define __C_IRR_DEVICE_SDL_H_INCLUDED__
+#endif
+
+
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 
 #include "CIrrDeviceSDL.h"
@@ -17,8 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "SIrrCreationParameters.h"
-#include <SDL/SDL_syswm.h>
-#include <SDL/SDL_video.h>
+#include <SDL_syswm.h>
+#include <SDL_video.h>
 
 #ifdef _IRR_EMSCRIPTEN_PLATFORM_
 #ifdef _IRR_COMPILE_WITH_OGLES2_
@@ -182,13 +187,13 @@ bool CIrrDeviceSDL::isNoUnicodeKey(EKEY_CODE key) const
 #endif
 
 //! constructor
-CIrrDeviceSDL::CIrrDeviceSDL(const SIrrlichtCreationParameters& param)
+CIrrDeviceSDL::CIrrDeviceSDL(const SIrrlichtCreationParameters& param, const SDL_Window* window)
 	: CIrrDeviceStub(param),
 	Screen((SDL_Surface*)param.WindowId), SDL_Flags(SDL_ANYFORMAT),
 	MouseX(0), MouseY(0), MouseXRel(0), MouseYRel(0), MouseButtonStates(0),
 	Width(param.WindowSize.Width), Height(param.WindowSize.Height),
-	Resizable(param.WindowResizable), WindowMinimized(false)
-{
+	Resizable(param.WindowResizable), WindowMinimized(false), Window(window)
+{	
 	#ifdef _DEBUG
 	setDebugName("CIrrDeviceSDL");
 	#endif

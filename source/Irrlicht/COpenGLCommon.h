@@ -8,6 +8,7 @@
 #include "IrrCompileConfig.h"
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
+#define _IRR_COMPILE_WITH_SDL_DEVICE_
 
 #if defined(_IRR_WINDOWS_API_)
 	#define WIN32_LEAN_AND_MEAN
@@ -33,30 +34,16 @@
 	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
 		#include <GL/glext.h>
 	#endif
-#elif defined(_IRR_COMPILE_WITH_SDL_DEVICE_) && !defined(_IRR_COMPILE_WITH_X11_DEVICE_)
+#elif defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
 	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
 		#define GL_GLEXT_LEGACY 1
-		#define GLX_GLXEXT_LEGACY 1
+		#define GLX_GLXEXT_LEGACY 0
 	#else
 		#define GL_GLEXT_PROTOTYPES 1
-		#define GLX_GLXEXT_PROTOTYPES 1
+		#define GLX_GLXEXT_PROTOTYPES 0
 	#endif
-	#include <SDL/SDL_video.h>
-	#include <SDL/SDL_opengl.h>
-#else
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#define GL_GLEXT_LEGACY 1
-		#define GLX_GLXEXT_LEGACY 1
-	#else
-		#define GL_GLEXT_PROTOTYPES 1
-		#define GLX_GLXEXT_PROTOTYPES 1
-	#endif
-	#include <GL/gl.h>
-	#include <GL/glx.h>
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-	#include <GL/glext.h>
-	#include <GL/glxext.h>
-	#endif
+	#include <SDL_video.h>
+	#include <SDL_opengl.h>
 #endif
 
 #ifndef GL_ARB_shader_objects

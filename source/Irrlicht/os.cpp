@@ -2,13 +2,17 @@
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
+#ifndef _IRR_COMPILE_WITH_SDL_DEVICE_
+#define _IRR_COMPILE_WITH_SDL_DEVICE_
+#endif
+
 #include "os.h"
 #include "irrString.h"
 #include "IrrCompileConfig.h"
 #include "irrMath.h"
 
 #if defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
-	#include <SDL/SDL_endian.h>
+	#include <SDL_endian.h>
 	#define bswap_16(X) SDL_Swap16(X)
 	#define bswap_32(X) SDL_Swap32(X)
 	#define bswap_64(X) SDL_Swap64(X)
@@ -30,8 +34,6 @@
 	#define bswap_16(X) bswap16(X)
 	#define bswap_32(X) bswap32(X)
 	#define bswap_64(X) bswap64(X)
-#elif !defined(_IRR_SOLARIS_PLATFORM_) && !defined(__PPC__) && !defined(_IRR_WINDOWS_API_)
-	#include <byteswap.h>
 #else
 	#define bswap_16(X) ((((X)&0xFF) << 8) | (((X)&0xFF00) >> 8))
 	#define bswap_32(X) ((((X)&0x000000FF) << 24) | (((X)&0xFF000000) >> 24) | (((X)&0x0000FF00) << 8) | (((X) &0x00FF0000) >> 8))

@@ -7,7 +7,7 @@
 
 #include "IrrCompileConfig.h"
 #include <stdint.h>
-
+#define _IRR_IMPLEMENT_MANAGED_MARSHALLING_BUGFIX
 namespace irr
 {
 
