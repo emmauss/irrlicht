@@ -9,6 +9,8 @@ message(STATUS "*** Building IrrlichtMt ${PROJECT_VERSION} ***")
 
 include(GNUInstallDirs)
 
+set(GLAD_INCLUDE_DIR "/opt/devkitpro/portlibs/switch/include/glad")
+
 if(ANDROID)
 	set(sysname Android)
 elseif(APPLE)
@@ -54,6 +56,10 @@ install(EXPORT IrrlichtMt-export
 	FILE IrrlichtMtTargets.cmake
 	NAMESPACE IrrlichtMt::
 	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/IrrlichtMt"
+)
+
+include_directories(
+	${GLAD_INCLUDE_DIR}
 )
 
 include(CMakePackageConfigHelpers)

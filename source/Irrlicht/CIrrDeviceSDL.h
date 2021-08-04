@@ -6,7 +6,7 @@
 
 #ifndef __C_IRR_DEVICE_SDL_H_INCLUDED__
 #define __C_IRR_DEVICE_SDL_H_INCLUDED__
-
+#endif
 #include "IrrCompileConfig.h"
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
@@ -80,6 +80,8 @@ namespace irr
 
 		//! Restores the window size.
 		virtual void restoreWindow() _IRR_OVERRIDE_;
+		
+		void tryCreateOpenGLContext(u32 flags);
 
 		//! Checks if the Irrlicht window is running in fullscreen mode
 		/** \return True if window is fullscreen. */
@@ -242,8 +244,8 @@ namespace irr
 
 		void logAttributes();
 
-		SDL_Surface* Screen;
 		SDL_Window *Window;
+		SDL_GLContext Context;
 		int SDL_Flags;
 #if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
 		core::array<SDL_Joystick*> Joysticks;
@@ -282,5 +284,4 @@ namespace irr
 } // end namespace irr
 
 #endif // _IRR_COMPILE_WITH_SDL_DEVICE_
-#endif // __C_IRR_DEVICE_SDL_H_INCLUDED__
 

@@ -40,7 +40,7 @@ namespace irr
 			IgnoreInput(false),
 			Stereobuffer(false),
 			HighPrecisionFPU(false),
-			EventReceiver(0),
+			EventReceiver(0), SwapInterval(1),
 			WindowId(0),
 #ifdef _DEBUG
 			LoggingLevel(ELL_DEBUG),
@@ -227,6 +227,7 @@ namespace irr
 		//! A user created event receiver.
 		IEventReceiver* EventReceiver;
 
+		int SwapInterval;
 		//! Window Id.
 		/** If this is set to a value other than 0, the Irrlicht Engine
 		will be created in an already existing window.
@@ -321,6 +322,7 @@ namespace irr
 		/** This is about the shaders which can be found in media/Shaders by default. It's only necessary
 		to set when using OGL-ES 2.0 */
 		irr::io::path OGLES2ShaderPath;
+
 	};
 
 
