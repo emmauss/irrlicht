@@ -10,6 +10,8 @@
 #include "irrString.h"
 #include "IrrCompileConfig.h"
 #include "irrMath.h"
+#include <stdio.h>
+#include <ostream>
 
 #if defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
 	#include <SDL_endian.h>
@@ -74,19 +76,15 @@ namespace irr
 {
 namespace os
 {
+extern std::ostream infostream;
 	//! prints a debuginfo string
 	void Printer::print(const c8* message, ELOG_LEVEL ll)
 	{
-#if defined (_WIN32_WCE )
-		core::stringw tmp(message);
-		tmp += L"\n";
-		OutputDebugStringW(tmp.c_str());
-#else
 		core::stringc tmp(message);
 		tmp += "\n";
 		OutputDebugStringA(tmp.c_str());
 		printf("%s", tmp.c_str());
-#endif
+		infostream << tmp.c_str() << std::endl;
 	}
 
 	static LARGE_INTEGER HighPerformanceFreq;

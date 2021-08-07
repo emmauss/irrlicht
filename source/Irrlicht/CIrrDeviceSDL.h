@@ -15,6 +15,7 @@
 #include "CIrrDeviceStub.h"
 #include "IImagePresenter.h"
 #include "ICursorControl.h"
+#include <map>
 
 #ifdef _IRR_EMSCRIPTEN_PLATFORM_
 #include <emscripten/html5.h>
@@ -258,6 +259,7 @@ namespace irr
 		u32 Width, Height;
 
 		bool Resizable;
+		bool WindowHasFocus;
 		bool WindowMinimized;
 
 		struct SKeyMap
@@ -278,6 +280,7 @@ namespace irr
 		};
 
 		core::array<SKeyMap> KeyMap;
+		std::map<SDL_Scancode, irr::EKEY_CODE> ScanCodeMap;
 		SDL_SysWMinfo Info;
 	};
 

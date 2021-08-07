@@ -410,46 +410,6 @@ void CIrrDeviceSDL::createDriver()
 		os::Printer::log("No OpenGL support compiled in.", ELL_ERROR);
 #endif
 		break;
-
-	case video::EDT_OGLES2: {
-#ifdef _IRR_COMPILE_WITH_OGLES2_
-		u32 default_fb = 0;
-#ifdef IOS_STK
-		default_fb = Info.info.uikit.framebuffer;
-#endif
-		VideoDriver = video::createOGLES2Driver(
-				CreationParams, FileSystem, this, default_fb);
-#else
-		os::Printer::log("No OpenGL ES 2.0 support compiled in.", ELL_ERROR);
-#endif
-		break;
-	}
-
-	case video::EDT_VULKAN: {
-#ifdef _IRR_COMPILE_WITH_VULKAN_
-		try {
-			VideoDriver = video::createVulkanDriver(
-					CreationParams, FileSystem, Window);
-		} catch (std::exception &e) {
-			os::Printer::log(
-					"createVulkanDriver failed", e.what(), ELL_ERROR);
-		}
-#else
-		os::Printer::log("No Vulkan support compiled in.", ELL_ERROR);
-#endif
-		break;
-	}
-
-	case video::EDT_DIRECT3D9: {
-#ifdef _IRR_COMPILE_WITH_DIRECT3D_9_
-		VideoDriver = video::createDirectX9Driver(
-				CreationParams, FileSystem, Info.info.win.window);
-#else
-		os::Printer::log("No DirectX 9 support compiled in.", ELL_ERROR);
-#endif
-		break;
-	}
-
 	case video::EDT_NULL:
 		VideoDriver = video::createNullDriver(
 				FileSystem, CreationParams.WindowSize);
@@ -488,7 +448,10 @@ bool CIrrDeviceSDL::run()
 
 			postEventFromUser(irrevent);
 			break;
-
+		case SDL_MOUSEWHEEL:
+			irrevent.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
+			irrevent.MouseInput.Wheel = SDL_event.wheel.y  >  0 ? 1.0f : -1.0f;
+			break;
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:
 
@@ -565,16 +528,6 @@ bool CIrrDeviceSDL::run()
 					MouseButtonStates &= !irr::EMBSM_MIDDLE;
 				}
 				break;
-
-			case SDL_BUTTON_WHEELUP:
-				irrevent.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
-				irrevent.MouseInput.Wheel = 1.0f;
-				break;
-
-			case SDL_BUTTON_WHEELDOWN:
-				irrevent.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
-				irrevent.MouseInput.Wheel = -1.0f;
-				break;
 			}
 
 			irrevent.MouseInput.ButtonStates = MouseButtonStates;
@@ -608,44 +561,31 @@ bool CIrrDeviceSDL::run()
 				s32 idx = KeyMap.binary_search(mp);
 
 				EKEY_CODE key;
-				if (idx == -1)
-					key = (EKEY_CODE)0;
-				else
+				if (idx == -1) {
+					// Fallback to use scancode directly if not found, happens
+					// in belarusian keyboard layout for example
+					auto it = ScanCodeMap.find(SDL_event.key.keysym.scancode);
+					if (it != ScanCodeMap.end())
+						key = it->second;
+					else
+						key = (EKEY_CODE)0;
+				} else
 					key = (EKEY_CODE)KeyMap[idx].Win32Key;
 
-#ifdef _IRR_WINDOWS_API_
-				// handle alt+f4 in Windows, because SDL seems not to
-				if ( (SDL_event.key.keysym.mod & KMOD_LALT) && key == KEY_F4)
-				{
-					Close = true;
-					break;
-				}
-#endif
 				irrevent.EventType = irr::EET_KEY_INPUT_EVENT;
-				irrevent.KeyInput.Char = SDL_event.key.keysym.unicode;
+				irrevent.KeyInput.Char = 0;
 				irrevent.KeyInput.Key = key;
-#ifdef _IRR_EMSCRIPTEN_PLATFORM_
-				// On emscripten SDL does not (yet?) return 0 for invalid keysym.unicode's.
-				// Instead it sets keysym.unicode to keysym.sym.
-				// But we need to distinguish control keys from characters here as that info
-				// is necessary in other places like the editbox.
-				if ( isNoUnicodeKey(key) )
-					irrevent.KeyInput.Char = 0;
-#endif
 				irrevent.KeyInput.PressedDown = (SDL_event.type == SDL_KEYDOWN);
-				irrevent.KeyInput.Shift = (SDL_event.key.keysym.mod & KMOD_SHIFT) != 0;
-				irrevent.KeyInput.Control = (SDL_event.key.keysym.mod & KMOD_CTRL ) != 0;
+				irrevent.KeyInput.Shift =
+						(SDL_event.key.keysym.mod & KMOD_SHIFT) != 0;
+				irrevent.KeyInput.Control =
+						(SDL_event.key.keysym.mod & KMOD_CTRL) != 0;
 				postEventFromUser(irrevent);
 			}
 			break;
 
 		case SDL_QUIT:
 			Close = true;
-			break;
-
-		case SDL_ACTIVEEVENT:
-			if (SDL_event.active.state == SDL_APPACTIVE)
-				WindowMinimized = (SDL_event.active.gain!=1);
 			break;
 
 		case SDL_WINDOWEVENT: {
@@ -659,7 +599,6 @@ bool CIrrDeviceSDL::run()
 				if (VideoDriver)
 					VideoDriver->OnResize(core::dimension2d<u32>(
 							Width, Height));
-				reset_network_body();
 			} else if (SDL_event.window.event == SDL_WINDOWEVENT_MINIMIZED) {
 				WindowMinimized = true;
 			} else if (SDL_event.window.event == SDL_WINDOWEVENT_MAXIMIZED) {
@@ -773,44 +712,45 @@ bool CIrrDeviceSDL::run()
 //! Activate any joysticks, and generate events for them.
 bool CIrrDeviceSDL::activateJoysticks(core::array<SJoystickInfo> & joystickInfo)
 {
-#if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
-	joystickInfo.clear();
+/*
+	#if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
+		joystickInfo.clear();
 
-	// we can name up to 256 different joysticks
-	const int numJoysticks = core::min_(SDL_NumJoysticks(), 256);
-	Joysticks.reallocate(numJoysticks);
-	joystickInfo.reallocate(numJoysticks);
+		// we can name up to 256 different joysticks
+		const int numJoysticks = core::min_(SDL_NumJoysticks(), 256);
+		Joysticks.reallocate(numJoysticks);
+		joystickInfo.reallocate(numJoysticks);
 
-	int joystick = 0;
-	for (; joystick<numJoysticks; ++joystick)
-	{
-		Joysticks.push_back(SDL_JoystickOpen(joystick));
-		SJoystickInfo info;
+		int joystick = 0;
+		for (; joystick<numJoysticks; ++joystick)
+		{
+			Joysticks.push_back(SDL_JoystickOpen(joystick));
+			SJoystickInfo info;
 
-		info.Joystick = joystick;
-		info.Axes = SDL_JoystickNumAxes(Joysticks[joystick]);
-		info.Buttons = SDL_JoystickNumButtons(Joysticks[joystick]);
-		info.Name = SDL_JoystickName(joystick);
-		info.PovHat = (SDL_JoystickNumHats(Joysticks[joystick]) > 0)
-						? SJoystickInfo::POV_HAT_PRESENT : SJoystickInfo::POV_HAT_ABSENT;
+			info.Joystick = joystick;
+			info.Axes = SDL_JoystickNumAxes(Joysticks[joystick]);
+			info.Buttons = SDL_JoystickNumButtons(Joysticks[joystick]);
+			info.Name = SDL_JoystickName(joystick);
+			info.PovHat = (SDL_JoystickNumHats(Joysticks[joystick]) > 0)
+							? SJoystickInfo::POV_HAT_PRESENT : SJoystickInfo::POV_HAT_ABSENT;
 
-		joystickInfo.push_back(info);
-	}
+			joystickInfo.push_back(info);
+		}
 
-	for(joystick = 0; joystick < (int)joystickInfo.size(); ++joystick)
-	{
-		char logString[256];
-		(void)sprintf(logString, "Found joystick %d, %d axes, %d buttons '%s'",
-		joystick, joystickInfo[joystick].Axes,
-		joystickInfo[joystick].Buttons, joystickInfo[joystick].Name.c_str());
-		os::Printer::log(logString, ELL_INFORMATION);
-	}
+		for(joystick = 0; joystick < (int)joystickInfo.size(); ++joystick)
+		{
+			char logString[256];
+			(void)sprintf(logString, "Found joystick %d, %d axes, %d buttons '%s'",
+			joystick, joystickInfo[joystick].Axes,
+			joystickInfo[joystick].Buttons, joystickInfo[joystick].Name.c_str());
+			os::Printer::log(logString, ELL_INFORMATION);
+		}
 
-	return true;
+		return true;
 
-#endif // _IRR_COMPILE_WITH_JOYSTICK_EVENTS_
-
-	return false;
+	#endif // _IRR_COMPILE_WITH_JOYSTICK_EVENTS_
+	*/
+		return false;
 }
 
 
@@ -840,7 +780,7 @@ void CIrrDeviceSDL::sleep(u32 timeMs, bool pauseTimer)
 void CIrrDeviceSDL::setWindowCaption(const wchar_t* text)
 {
 	core::stringc textc = text;
-	SDL_WM_SetCaption( textc.c_str( ), textc.c_str( ) );
+	SDL_SetWindowTitle(Window, textc.c_str());
 }
 
 
@@ -861,48 +801,49 @@ void CIrrDeviceSDL::closeDevice()
 //! \return Pointer to a list with all video modes supported
 video::IVideoModeList* CIrrDeviceSDL::getVideoModeList()
 {
-#ifdef _IRR_EMSCRIPTEN_PLATFORM_
-	os::Printer::log("VideoModeList not available on the web." , ELL_WARNING);
-	return VideoModeList;
-#else // !_IRR_EMSCRIPTEN_PLATFORM_
-	if (!VideoModeList->getVideoModeCount())
-	{
+	if (!VideoModeList->getVideoModeCount()) {
 		// enumerate video modes.
-		const SDL_VideoInfo *vi = SDL_GetVideoInfo();
+		int display_count = 0;
+		if ((display_count = SDL_GetNumVideoDisplays()) < 1) {
+			os::Printer::log("No display created: ", SDL_GetError(),
+					ELL_ERROR);
+			return VideoModeList;
+		}
 
-		SDL_PixelFormat pixelFormat = *(vi->vfmt);
+		int mode_count = 0;
+		if ((mode_count = SDL_GetNumDisplayModes(0)) < 1) {
+			os::Printer::log("No display modes available: ", SDL_GetError(),
+					ELL_ERROR);
+			return VideoModeList;
+		}
 
-		core::array<Uint8> checkBitsPerPixel;
-		checkBitsPerPixel.push_back(8);
-		checkBitsPerPixel.push_back(16);
-		checkBitsPerPixel.push_back(24);
-		checkBitsPerPixel.push_back(32);
-		if ( pixelFormat.BitsPerPixel > 32 )
-			checkBitsPerPixel.push_back(pixelFormat.BitsPerPixel);
+		SDL_DisplayMode mode = {SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
+		if (SDL_GetDesktopDisplayMode(0, &mode) == 0) {
+			VideoModeList->setDesktop(SDL_BITSPERPIXEL(mode.format),
+					core::dimension2d<u32>(mode.w * g_native_scale_x,
+							mode.h * g_native_scale_y));
+		}
 
-		for ( u32 i=0; i<checkBitsPerPixel.size(); ++i)
-		{
-			pixelFormat.BitsPerPixel = checkBitsPerPixel[i];
-			SDL_Rect **modes = SDL_ListModes(&pixelFormat, SDL_Flags|SDL_FULLSCREEN);
-			if (modes != 0)
-			{
-				if (modes == (SDL_Rect **)-1)
-				{
-					core::stringc strLog("All modes available for bit-depth ");
-					strLog += core::stringc(pixelFormat.BitsPerPixel);
-					os::Printer::log(strLog.c_str());
-				}
-				else
-				{
-					for (u32 i=0; modes[i]; ++i)
-						VideoModeList->addMode(core::dimension2d<u32>(modes[i]->w, modes[i]->h), vi->vfmt->BitsPerPixel);
-				}
+#ifdef MOBILE_STK
+		// SDL2 will return w,h and h,w for mobile STK, as we only use landscape
+		// so we just use desktop resolution for now
+		VideoModeList.addMode(core::dimension2d<u32>(mode.w * g_native_scale_x,
+						      mode.h * g_native_scale_y),
+				SDL_BITSPERPIXEL(mode.format));
+#else
+		for (int i = 0; i < mode_count; i++) {
+			if (SDL_GetDisplayMode(0, i, &mode) == 0) {
+				VideoModeList->addMode(
+						core::dimension2d<u32>(
+								mode.w * g_native_scale_x,
+								mode.h * g_native_scale_y),
+						SDL_BITSPERPIXEL(mode.format));
 			}
 		}
+#endif
 	}
 
 	return VideoModeList;
-#endif // !_IRR_EMSCRIPTEN_PLATFORM_
 }
 
 //! Sets if the window should be resizable in windowed mode.
@@ -921,7 +862,7 @@ void CIrrDeviceSDL::setResizable(bool resize)
 //! Minimizes window if possible
 void CIrrDeviceSDL::minimizeWindow()
 {
-	SDL_WM_IconifyWindow();
+
 }
 
 
@@ -958,34 +899,21 @@ bool CIrrDeviceSDL::isFullscreen() const
 //! returns if window is active. if not, nothing need to be drawn
 bool CIrrDeviceSDL::isWindowActive() const
 {
-#ifdef _IRR_EMSCRIPTEN_PLATFORM_
-	// Hidden test only does something in some browsers (when tab in background or window is minimized)
-	// In other browsers code automatically doesn't seem to be called anymore.
-	EmscriptenVisibilityChangeEvent emVisibility;
-	if ( emscripten_get_visibility_status(&emVisibility) == EMSCRIPTEN_RESULT_SUCCESS)
-	{
-		if ( emVisibility.hidden )
-			return false;
-	}
-#endif
-	const Uint8 appState = SDL_GetAppState();
-	return (appState&SDL_APPACTIVE && appState&SDL_APPINPUTFOCUS) ? true : false;
+	return (WindowHasFocus && !WindowMinimized);
 }
 
 
 //! returns if window has focus.
 bool CIrrDeviceSDL::isWindowFocused() const
 {
-	return (SDL_GetAppState()&SDL_APPINPUTFOCUS) ? true : false;
+	return WindowHasFocus;
 }
-
 
 //! returns if window is minimized.
 bool CIrrDeviceSDL::isWindowMinimized() const
 {
 	return WindowMinimized;
 }
-
 
 //! Set the current Gamma Value for the Display
 bool CIrrDeviceSDL::setGammaRamp( f32 red, f32 green, f32 blue, f32 brightness, f32 contrast )
@@ -1064,9 +992,9 @@ void CIrrDeviceSDL::createKeyMap()
 	KeyMap.push_back(SKeyMap(SDLK_DOWN, KEY_DOWN));
 
 	// select missing
-	KeyMap.push_back(SKeyMap(SDLK_PRINT, KEY_PRINT));
+	KeyMap.push_back(SKeyMap(SDLK_PRINTSCREEN, KEY_PRINT));
 	// execute missing
-	KeyMap.push_back(SKeyMap(SDLK_PRINT, KEY_SNAPSHOT));
+	KeyMap.push_back(SKeyMap(SDLK_PRINTSCREEN, KEY_SNAPSHOT));
 
 	KeyMap.push_back(SKeyMap(SDLK_INSERT, KEY_INSERT));
 	KeyMap.push_back(SKeyMap(SDLK_DELETE, KEY_DELETE));
@@ -1110,21 +1038,21 @@ void CIrrDeviceSDL::createKeyMap()
 	KeyMap.push_back(SKeyMap(SDLK_y, KEY_KEY_Y));
 	KeyMap.push_back(SKeyMap(SDLK_z, KEY_KEY_Z));
 
-	KeyMap.push_back(SKeyMap(SDLK_LSUPER, KEY_LWIN));
-	KeyMap.push_back(SKeyMap(SDLK_RSUPER, KEY_RWIN));
+	KeyMap.push_back(SKeyMap(SDLK_LGUI, KEY_LWIN));
+	KeyMap.push_back(SKeyMap(SDLK_RGUI, KEY_RWIN));
 	// apps missing
 	KeyMap.push_back(SKeyMap(SDLK_POWER, KEY_SLEEP)); //??
 
-	KeyMap.push_back(SKeyMap(SDLK_KP0, KEY_NUMPAD0));
-	KeyMap.push_back(SKeyMap(SDLK_KP1, KEY_NUMPAD1));
-	KeyMap.push_back(SKeyMap(SDLK_KP2, KEY_NUMPAD2));
-	KeyMap.push_back(SKeyMap(SDLK_KP3, KEY_NUMPAD3));
-	KeyMap.push_back(SKeyMap(SDLK_KP4, KEY_NUMPAD4));
-	KeyMap.push_back(SKeyMap(SDLK_KP5, KEY_NUMPAD5));
-	KeyMap.push_back(SKeyMap(SDLK_KP6, KEY_NUMPAD6));
-	KeyMap.push_back(SKeyMap(SDLK_KP7, KEY_NUMPAD7));
-	KeyMap.push_back(SKeyMap(SDLK_KP8, KEY_NUMPAD8));
-	KeyMap.push_back(SKeyMap(SDLK_KP9, KEY_NUMPAD9));
+	KeyMap.push_back(SKeyMap(SDLK_KP_0, KEY_NUMPAD0));
+	KeyMap.push_back(SKeyMap(SDLK_KP_1, KEY_NUMPAD1));
+	KeyMap.push_back(SKeyMap(SDLK_KP_2, KEY_NUMPAD2));
+	KeyMap.push_back(SKeyMap(SDLK_KP_3, KEY_NUMPAD3));
+	KeyMap.push_back(SKeyMap(SDLK_KP_4, KEY_NUMPAD4));
+	KeyMap.push_back(SKeyMap(SDLK_KP_5, KEY_NUMPAD5));
+	KeyMap.push_back(SKeyMap(SDLK_KP_6, KEY_NUMPAD6));
+	KeyMap.push_back(SKeyMap(SDLK_KP_7, KEY_NUMPAD7));
+	KeyMap.push_back(SKeyMap(SDLK_KP_8, KEY_NUMPAD8));
+	KeyMap.push_back(SKeyMap(SDLK_KP_9, KEY_NUMPAD9));
 	KeyMap.push_back(SKeyMap(SDLK_KP_MULTIPLY, KEY_MULTIPLY));
 	KeyMap.push_back(SKeyMap(SDLK_KP_PLUS, KEY_ADD));
 //	KeyMap.push_back(SKeyMap(SDLK_KP_, KEY_SEPARATOR));
@@ -1149,8 +1077,8 @@ void CIrrDeviceSDL::createKeyMap()
 	KeyMap.push_back(SKeyMap(SDLK_F15, KEY_F15));
 	// no higher F-keys
 
-	KeyMap.push_back(SKeyMap(SDLK_NUMLOCK, KEY_NUMLOCK));
-	KeyMap.push_back(SKeyMap(SDLK_SCROLLOCK, KEY_SCROLL));
+	KeyMap.push_back(SKeyMap(SDLK_NUMLOCKCLEAR, KEY_NUMLOCK));
+	KeyMap.push_back(SKeyMap(SDLK_SCROLLLOCK, KEY_SCROLL));
 	KeyMap.push_back(SKeyMap(SDLK_LSHIFT, KEY_LSHIFT));
 	KeyMap.push_back(SKeyMap(SDLK_RSHIFT, KEY_RSHIFT));
 	KeyMap.push_back(SKeyMap(SDLK_LCTRL,  KEY_LCONTROL));

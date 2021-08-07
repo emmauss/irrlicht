@@ -20,10 +20,10 @@
 #include "COpenGLCoreTexture.h"
 #include "COpenGLCoreRenderTarget.h"
 
-#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 #include "CIrrDeviceSDL.h"
 #include <SDL.h>
-#endif
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 namespace irr
 {

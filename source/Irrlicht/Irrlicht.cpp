@@ -3,6 +3,9 @@
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
 #include "IrrCompileConfig.h"
+#ifndef _IRR_COMPILE_WITH_SDL_DEVICE_
+#define _IRR_COMPILE_WITH_SDL_DEVICE_
+#endif
 
 static const char* const copyright = "Irrlicht Engine (c) 2002-2017 Nikolaus Gebhardt";	// put string in binary
 
@@ -46,6 +49,10 @@ static const char* const copyright = "Irrlicht Engine (c) 2002-2017 Nikolaus Geb
 #include "Android/CIrrDeviceAndroid.h"
 #endif
 
+#include "os.h"
+#include <stdio.h>
+#include <iostream>
+
 namespace irr
 {
 	//! stub for calling createDeviceEx
@@ -73,46 +80,13 @@ namespace irr
 
 		IrrlichtDevice* dev = 0;
 
-#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-		if (params.DeviceType == EIDT_WIN32 || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceWin32(params);
-#endif
+		os::Printer::print("Creating Driver", ELL_INFORMATION);
 
-#ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-		if (params.DeviceType == EIDT_OSX || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceMacOSX(params);
-#endif
-
-#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-		if (params.DeviceType == EIDT_X11 || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceLinux(params);
-#endif
-        
-#ifdef _IRR_COMPILE_WITH_IOS_DEVICE_
-		if (params.DeviceType == EIDT_IOS || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceiOS(params);
-#endif
-
-#ifdef _IRR_COMPILE_WITH_ANDROID_DEVICE_
-		if (params.DeviceType == EIDT_ANDROID || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceAndroid(params);
-#endif
-
-#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
+		os::Printer::print("Creating SDL Driver", ELL_INFORMATION);
 		if (params.DeviceType == EIDT_SDL || (!dev && params.DeviceType == EIDT_BEST))
 			dev = new CIrrDeviceSDL(params);
-#endif
 
-#ifdef _IRR_COMPILE_WITH_FB_DEVICE_
-		if (params.DeviceType == EIDT_FRAMEBUFFER || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceFB(params);
-#endif
-
-#ifdef _IRR_COMPILE_WITH_CONSOLE_DEVICE_
-		if (params.DeviceType == EIDT_CONSOLE || (!dev && params.DeviceType == EIDT_BEST))
-			dev = new CIrrDeviceConsole(params);
-#endif
-
+		os::Printer::print("Driver created", ELL_INFORMATION);
 		if (dev && !dev->getVideoDriver() && params.DriverType != video::EDT_NULL)
 		{
 			dev->closeDevice(); // destroy window
