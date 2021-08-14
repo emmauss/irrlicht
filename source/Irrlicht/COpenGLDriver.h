@@ -17,13 +17,15 @@ namespace irr
 	class CIrrDeviceMacOSX;
 }
 
-#ifdef _IRR_COMPILE_WITH_OPENGL_
 
 #include "IMaterialRendererServices.h"
 #include "CNullDriver.h"
 
 #include "COpenGLExtensionHandler.h"
 #include "IContextManager.h"
+
+#include <SDL.h>
+#include <glad/gl.h>
 
 namespace irr
 {
@@ -530,6 +532,5 @@ namespace video
 } // end namespace irr
 
 
-#endif // _IRR_COMPILE_WITH_OPENGL_
 #endif
 

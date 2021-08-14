@@ -124,16 +124,20 @@ public:
 		}
 #endif
 
+		Driver->testGLError(__LINE__);
 		for (u32 i = 0; i < (*tmpImages).size(); ++i)
 			uploadTexture(true, i, 0, (*tmpImages)[i]->getData());
 
 		if (HasMipMaps && !LegacyAutoGenerateMipMaps)
 		{
 			// Create mipmaps (either from image mipmaps or generate them)
-			for (u32 i = 0; i < (*tmpImages).size(); ++i)
-			{
+			for (u32 i = 0; i < (*tmpImages).size(); ++i) {
+
 				void* mipmapsData = (*tmpImages)[i]->getMipMapsData();
+				Driver->testGLError(__LINE__);
 				regenerateMipMapLevels(mipmapsData, i);
+
+				Driver->testGLError(__LINE__);
 			}
 		}
 
@@ -386,6 +390,7 @@ public:
 			const COpenGLCoreTexture* prevTexture = Driver->getCacheHandler()->getTextureCache().get(0);
 			Driver->getCacheHandler()->getTextureCache().set(0, this);
 
+			Driver->testGLError(__LINE__);
 			uploadTexture(false, LockLayer, MipLevelStored, getLockImageData(MipLevelStored));
 
 			Driver->getCacheHandler()->getTextureCache().set(0, prevTexture);
@@ -403,9 +408,11 @@ public:
 		if (!HasMipMaps || LegacyAutoGenerateMipMaps || (Size.Width <= 1 && Size.Height <= 1))
 			return;
 
+		Driver->testGLError(__LINE__);
 		const COpenGLCoreTexture* prevTexture = Driver->getCacheHandler()->getTextureCache().get(0);
 		Driver->getCacheHandler()->getTextureCache().set(0, this);
 
+		Driver->testGLError(__LINE__);
 		if (data)
 		{
 			u32 width = Size.Width;
@@ -425,8 +432,10 @@ public:
 				dataSize = IImage::getDataSizeFromFormat(ColorFormat, width, height);
 				++level;
 
+				Driver->testGLError(__LINE__);
 				uploadTexture(true, layer, level, tmpData);
 
+				Driver->testGLError(__LINE__);
 				tmpData += dataSize;
 			}
 			while (width != 1 || height != 1);
@@ -436,8 +445,10 @@ public:
 #ifdef IRR_OPENGL_HAS_glGenerateMipmap
 	#if !defined(IRR_COMPILE_GLES2_COMMON)
 			glEnable(GL_TEXTURE_2D);	// Hack some ATI cards need this glEnable according to https://www.khronos.org/opengl/wiki/Common_Mistakes
-	#endif
+#endif
+			Driver->testGLError(__LINE__);
 			Driver->irrGlGenerateMipmap(TextureType);
+			Driver->testGLError(__LINE__);
 #endif
 		}
 

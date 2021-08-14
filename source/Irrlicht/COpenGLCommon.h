@@ -10,31 +10,7 @@
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 #define _IRR_COMPILE_WITH_SDL_DEVICE_
 
-#if defined(_IRR_WINDOWS_API_)
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#define GL_GLEXT_LEGACY 1
-	#endif
-	#include <GL/gl.h>
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#include <GL/glext.h>
-	#endif
-	#include <GL/wglext.h>
-
-	#ifdef _MSC_VER
-		#pragma comment(lib, "OpenGL32.lib")
-	#endif
-
-#elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#define GL_GLEXT_LEGACY 1
-	#endif
-	#include <OpenGL/gl.h>
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#include <GL/glext.h>
-	#endif
-#elif defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
+#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
 		#define GL_GLEXT_LEGACY 1
 		#define GLX_GLXEXT_LEGACY 0
@@ -43,7 +19,9 @@
 		#define GLX_GLXEXT_PROTOTYPES 0
 	#endif
 	#include <SDL_video.h>
-	#include <SDL_opengl.h>
+	#include <SDL.h>
+	#include <SDL_video.h>
+	#include <glad/gl.h>
 #endif
 
 #ifndef GL_ARB_shader_objects

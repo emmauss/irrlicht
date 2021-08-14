@@ -51,9 +51,6 @@
 
 //! Uncomment this line to compile with the SDL device
 #define _IRR_COMPILE_WITH_SDL_DEVICE_
-#ifdef NO_IRR_COMPILE_WITH_SDL_DEVICE_
-#undef _IRR_COMPILE_WITH_SDL_DEVICE_
-#endif
 
 //! Comment this line to compile without the fallback console device.
 //#define _IRR_COMPILE_WITH_CONSOLE_DEVICE_
@@ -64,11 +61,14 @@
 //! WIN32 for Windows32
 //! WIN64 for Windows64
 // The windows platform and API support SDL and WINDOW device
+#ifndef  __SWITCH__
+
 #if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
 #define _IRR_WINDOWS_
 #define _IRR_WINDOWS_API_
 #define _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 #endif
+#endif // ! __SWITCH__
 
 #if defined(_MSC_VER) && (_MSC_VER < 1500)
 #  error "Only Microsoft Visual Studio 9.0 and later are supported."

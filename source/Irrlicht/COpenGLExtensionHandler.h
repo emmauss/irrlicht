@@ -7,8 +7,6 @@
 
 #include "IrrCompileConfig.h"
 
-#ifdef _IRR_COMPILE_WITH_OPENGL_
-
 #include "EDriverFeatures.h"
 #include "irrTypes.h"
 #include "os.h"
@@ -3433,7 +3431,7 @@ inline void COpenGLExtensionHandler::extGlSwapInterval(int interval)
 }
 }
 
-#endif
+
 
 #endif
 

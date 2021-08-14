@@ -11,8 +11,6 @@
 #define _IRR_COMPILE_WITH_SDL_DEVICE_
 #endif
 
-#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-
 #include "CIrrDeviceSDL.h"
 #include "IEventReceiver.h"
 #include "irrList.h"
@@ -27,7 +25,7 @@
 #include <SDL_syswm.h>
 #include <SDL_video.h>
 #include <SDL.h>
-#include "glad/glad.h"
+#include <glad/gl.h>
 
 #ifdef _IRR_EMSCRIPTEN_PLATFORM_
 #ifdef _IRR_COMPILE_WITH_OGLES2_
@@ -123,6 +121,9 @@ CIrrDeviceSDL::CIrrDeviceSDL(const SIrrlichtCreationParameters& param)
 	if (CreationParams.DriverType != video::EDT_NULL)
 	{
 		// create the window, only if we do not use the null device
+
+		Window = NULL;
+		Context = NULL;
 		createWindow();
 	}
 
@@ -226,27 +227,28 @@ extern "C" void update_swap_interval(int swap_interval)
 
 void CIrrDeviceSDL::tryCreateOpenGLContext(u32 flags)
 {
+
+	os::Printer::print("Set Double Buffer", ELL_INFORMATION);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, CreationParams.Doublebuffer);
 
-	if (CreationParams.DriverType == video::EDT_OGLES2)
-		SDL_GL_SetAttribute(
-				SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-	else
-		SDL_GL_SetAttribute(
-				SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	os::Printer::print("Set Compat Profile", ELL_INFORMATION);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+			SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
-#ifdef _IRR_COMPILE_WITH_OGLES2_
-	if (Context) {
+	if (Context != NULL) {
+			os::Printer::print("Delete Context", ELL_INFORMATION);
 		SDL_GL_DeleteContext(Context);
 		Context = NULL;
 	}
-	if (Window) {
+	if (Window != NULL) {
+		os::Printer::print("Delete Window", ELL_INFORMATION);
 		SDL_DestroyWindow(Window);
 		Window = NULL;
 	}
 
+	os::Printer::print("Creating SDL2 Window with Context 3.2", ELL_INFORMATION);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	Window = SDL_CreateWindow("",
 			(float)CreationParams.WindowPosition.X / g_native_scale_x,
 			(float)CreationParams.WindowPosition.Y / g_native_scale_y,
@@ -254,46 +256,27 @@ void CIrrDeviceSDL::tryCreateOpenGLContext(u32 flags)
 			(float)CreationParams.WindowSize.Height / g_native_scale_y,
 			flags);
 	if (Window) {
+		os::Printer::print(
+				"Creating SDL2 Context 3.2", ELL_INFORMATION);
 		Context = SDL_GL_CreateContext(Window);
-		if (Context && gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress) != 0 &&
-				versionCorrect(3, 0))
-			return;
-	}
-
-#else
-	if (Context) {
-		SDL_GL_DeleteContext(Context);
-		Context = NULL;
-	}
-	if (Window) {
-		SDL_DestroyWindow(Window);
-		Window = NULL;
-	}
-
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	Window = SDL_CreateWindow("",
-			(float)CreationParams.WindowPosition.X / g_native_scale_x,
-			(float)CreationParams.WindowPosition.Y / g_native_scale_y,
-			(float)CreationParams.WindowSize.Width / g_native_scale_x,
-			(float)CreationParams.WindowSize.Height / g_native_scale_y,
-			flags);
-	if (Window) {
-		Context = SDL_GL_CreateContext(Window);
-		if (Context && gladLoadGL() != 0 &&
+		os::Printer::print("Context Created. Loading GL", ELL_INFORMATION);
+		if (Context && gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress) != 0 &&
 				versionCorrect(4, 3))
 			return;
 	}
 
-	if (Context) {
+	os::Printer::print("Creating SDL2 Window with Context 3.2 Failed", ELL_INFORMATION);
+
+	if (Context != NULL) {
 		SDL_GL_DeleteContext(Context);
 		Context = NULL;
 	}
-	if (Window) {
+	if (Window != NULL) {
 		SDL_DestroyWindow(Window);
 		Window = NULL;
 	}
-
+	/*
+	os::Printer::print("Creating SDL2 Window with Context 3.3", ELL_INFORMATION);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	Window = SDL_CreateWindow("",
@@ -304,20 +287,21 @@ void CIrrDeviceSDL::tryCreateOpenGLContext(u32 flags)
 			flags);
 	if (Window) {
 		Context = SDL_GL_CreateContext(Window);
-		if (Context && gladLoadGL() != 0 &&
+		if (Context && gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress) != 0 &&
 				versionCorrect(3, 3))
 			return;
 	}
 
-	if (Context) {
+	if (Context != NULL) {
 		SDL_GL_DeleteContext(Context);
 		Context = NULL;
 	}
-	if (Window) {
+	if (Window != NULL) {
 		SDL_DestroyWindow(Window);
 		Window = NULL;
 	}
-
+	*/
+	os::Printer::print("Creating SDL2 Window with Context 3.1", ELL_INFORMATION);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 	Window = SDL_CreateWindow("",
@@ -328,17 +312,21 @@ void CIrrDeviceSDL::tryCreateOpenGLContext(u32 flags)
 			flags);
 	if (Window) {
 		Context = SDL_GL_CreateContext(Window);
-		if (Context && gladLoadGL() != 0 &&
+		if (Context && gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress) != 0 &&
 				versionCorrect(3, 1))
 			return;
 	}
-#endif
+
+	os::Printer::print("Unable to Create Context", ELL_INFORMATION);
 }
 
 bool CIrrDeviceSDL::createWindow()
 {
 	if ( Close )
 		return false;
+
+	
+	os::Printer::print("Creating SDL2 Window", ELL_INFORMATION);
 
 	// Ignore alpha size here, this follow irr_driver.cpp:450
 	// Try 32 and, upon failure, 24 then 16 bit per pixels
@@ -381,6 +369,8 @@ bool CIrrDeviceSDL::createWindow()
 			os::Printer::log("Could not initialize display!");
 			return false;
 		}
+		os::Printer::log("Context and Window Created");
+		SDL_GL_MakeCurrent(Window, Context);
 		update_swap_interval(CreationParams.SwapInterval);
 	} else {
 		Window = SDL_CreateWindow("",
@@ -410,11 +400,6 @@ void CIrrDeviceSDL::createDriver()
 		os::Printer::log("No OpenGL support compiled in.", ELL_ERROR);
 #endif
 		break;
-	case video::EDT_NULL:
-		VideoDriver = video::createNullDriver(
-				FileSystem, CreationParams.WindowSize);
-		break;
-
 	default:
 		os::Printer::log("Unable to create video driver of unknown type.",
 				ELL_ERROR);
@@ -877,6 +862,11 @@ core::position2di CIrrDeviceSDL::getWindowPosition()
 {
     return core::position2di(-1, -1);
 }
+//! Get the position of this window on screen
+bool CIrrDeviceSDL::getWindowPosition(int* x, int* y)
+{
+	return true;
+}
 
 
 //! Restore original window size
@@ -1098,5 +1088,4 @@ void CIrrDeviceSDL::createKeyMap()
 
 } // end namespace irr
 
-#endif // _IRR_COMPILE_WITH_SDL_DEVICE_
 

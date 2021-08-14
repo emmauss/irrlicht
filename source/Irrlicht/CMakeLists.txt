@@ -154,7 +154,9 @@ add_library(IRROTHEROBJ OBJECT
 )
 
 set(IRRDRVROBJ
+	gl.c
 	COpenGLCacheHandler.cpp
+	CNullDriver.cpp
 	COpenGLDriver.cpp
 	COpenGLNormalMapRenderer.cpp
 	COpenGLParallaxMapRenderer.cpp

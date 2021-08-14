@@ -22,8 +22,6 @@
 
 #include "CIrrDeviceSDL.h"
 #include <SDL.h>
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
 
 namespace irr
 {
@@ -33,26 +31,7 @@ namespace video
 // Statics variables
 const u16 COpenGLDriver::Quad2DIndices[4] = { 0, 1, 2, 3 };
 
-#if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_) || defined(_IRR_COMPILE_WITH_X11_DEVICE_) || defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
-COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, IContextManager* contextManager)
-	: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(), CacheHandler(0), CurrentRenderMode(ERM_NONE), ResetRenderStates(true),
-	Transformation3DChanged(true), AntiAlias(params.AntiAlias), ColorFormat(ECF_R8G8B8), FixedPipelineState(EOFPS_ENABLE), Params(params),
-	ContextManager(contextManager),
-#if defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
-	DeviceType(EIDT_WIN32)
-#elif defined(_IRR_COMPILE_WITH_X11_DEVICE_)
-	DeviceType(EIDT_X11)
-#else
-	DeviceType(EIDT_OSX)
-#endif
-{
-#ifdef _DEBUG
-	setDebugName("COpenGLDriver");
-#endif
-}
-#endif
 
-#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceSDL* device)
 	: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(), CacheHandler(0),
 	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
@@ -66,7 +45,6 @@ COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFil
 	genericDriverInit();
 }
 
-#endif
 
 bool COpenGLDriver::initDriver()
 {
@@ -309,8 +287,9 @@ bool COpenGLDriver::endScene()
 
 	bool status = false;
 
-	if (ContextManager)
+	if (ContextManager != NULL) {
 		status = ContextManager->swapBuffers();
+	}
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 	if ( DeviceType == EIDT_SDL )
@@ -468,7 +447,7 @@ bool COpenGLDriver::updateVertexHardwareBuffer(SHWBufferLink_opengl *HWBuffer)
 
 	extGlBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	return (!testGLError(__LINE__));
+	return (!testGLError(450));
 #else
 	return false;
 #endif
@@ -542,7 +521,7 @@ bool COpenGLDriver::updateIndexHardwareBuffer(SHWBufferLink_opengl *HWBuffer)
 
 	extGlBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	return (!testGLError(__LINE__));
+	return (!testGLError(524));
 #else
 	return false;
 #endif
@@ -736,7 +715,7 @@ void COpenGLDriver::runOcclusionQuery(scene::ISceneNode* node, bool visible)
 #else
 				0);
 #endif
-		testGLError(__LINE__);
+		testGLError(718);
 	}
 }
 
@@ -764,7 +743,7 @@ void COpenGLDriver::updateOcclusionQuery(scene::ISceneNode* node, bool block)
 						0,
 #endif
 						&available);
-			testGLError(__LINE__);
+			testGLError(746);
 		}
 		if (available==GL_TRUE)
 		{
@@ -780,7 +759,7 @@ void COpenGLDriver::updateOcclusionQuery(scene::ISceneNode* node, bool block)
 			if (queryFeature(EVDF_OCCLUSION_QUERY))
 				OcclusionQueries[index].Result = available;
 		}
-		testGLError(__LINE__);
+		testGLError(762);
 	}
 }
 
@@ -4043,7 +4022,7 @@ IImage* COpenGLDriver::createScreenShot(video::ECOLOR_FORMAT format, video::E_RE
 		}
 		glReadBuffer(tgt);
 		glReadPixels(0, 0, ScreenSize.Width, ScreenSize.Height, fmt, type, pixels);
-		testGLError(__LINE__);
+		testGLError(4025);
 		glReadBuffer(GL_BACK);
 	}
 
@@ -4079,7 +4058,7 @@ IImage* COpenGLDriver::createScreenShot(video::ECOLOR_FORMAT format, video::E_RE
 
 	if (newImage)
 	{
-		if (testGLError(__LINE__) || !pixels)
+		if (testGLError(4061) || !pixels)
 		{
 			os::Printer::log("createScreenShot failed", ELL_ERROR);
 			newImage->drop();
