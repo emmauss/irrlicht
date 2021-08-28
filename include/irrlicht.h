@@ -123,6 +123,7 @@
 #include "irrString.h"
 #include "irrTypes.h"
 #include "path.h"
+#include "ISceneCollisionManager.h"
 #include "ISceneLoader.h"
 #include "ISceneManager.h"
 #include "ISceneNode.h"

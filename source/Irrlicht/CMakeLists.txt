@@ -133,6 +133,29 @@ add_library(IRROBJ OBJECT
 	CDummyTransformationSceneNode.cpp
 	CEmptySceneNode.cpp
 	CMeshManipulator.cpp
+	CLightSceneNode.cpp
+	CSkyBoxSceneNode.cpp
+	CGeometryCreator.cpp
+	COctreeSceneNode.cpp
+	COctreeTriangleSelector.cpp
+	CTriangleBBSelector.cpp
+	CMetaTriangleSelector.cpp
+	CDefaultSceneNodeAnimatorFactory.cpp
+	CQ3LevelMesh.cpp
+	CQuake3ShaderSceneNode.cpp
+	CVolumeLightSceneNode.cpp
+	CTextSceneNode.cpp
+	CSceneCollisionManager.cpp
+	CTriangleSelector.cpp
+	CSceneNodeAnimatorCameraFPS.cpp
+	CSceneNodeAnimatorCameraMaya.cpp
+	CSceneNodeAnimatorCollisionResponse.cpp
+	CSceneNodeAnimatorDelete.cpp
+	CSceneNodeAnimatorFlyCircle.cpp
+	CSceneNodeAnimatorFlyStraight.cpp
+	CSceneNodeAnimatorFollowSpline.cpp
+	CSceneNodeAnimatorRotation.cpp
+	CSceneNodeAnimatorTexture.cpp
 	CSceneManager.cpp
 	CMeshCache.cpp
 	CDefaultSceneNodeFactory.cpp

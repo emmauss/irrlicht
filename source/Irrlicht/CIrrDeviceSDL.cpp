@@ -596,7 +596,33 @@ bool CIrrDeviceSDL::run()
 			} else if (SDL_event.window.event == SDL_WINDOWEVENT_MOVED) {
 			}
 		} break;
-
+		case SDL_FINGERDOWN:
+			irrevent.EventType = EET_TOUCH_INPUT_EVENT;
+			irrevent.TouchInput.Event = ETIE_PRESSED_DOWN;
+			irrevent.TouchInput.ID = SDL_event.tfinger.fingerId;
+			irrevent.TouchInput.X = SDL_event.tfinger.x * 1280;
+			irrevent.TouchInput.Y = SDL_event.tfinger.y * 720;
+			irrevent.TouchInput.touchedCount = 1;
+			postEventFromUser(irrevent);
+			break;
+		case SDL_FINGERMOTION:
+			irrevent.EventType = EET_TOUCH_INPUT_EVENT;
+			irrevent.TouchInput.Event = ETIE_MOVED;
+			irrevent.TouchInput.ID = SDL_event.tfinger.fingerId;
+			irrevent.TouchInput.X = SDL_event.tfinger.x * 1280;
+			irrevent.TouchInput.Y = SDL_event.tfinger.y * 720;
+			irrevent.TouchInput.touchedCount = 1;
+			postEventFromUser(irrevent);
+			break;
+		case SDL_FINGERUP:
+			irrevent.EventType = EET_TOUCH_INPUT_EVENT;
+			irrevent.TouchInput.Event = ETIE_LEFT_UP;
+			irrevent.TouchInput.ID = SDL_event.tfinger.fingerId;
+			irrevent.TouchInput.X = SDL_event.tfinger.x * 1280;
+			irrevent.TouchInput.Y = SDL_event.tfinger.y * 720;
+			irrevent.TouchInput.touchedCount = 1;
+			postEventFromUser(irrevent);
+			break;
 		case SDL_USEREVENT:
 			irrevent.EventType = irr::EET_USER_EVENT;
 			irrevent.UserEvent.UserData1 = reinterpret_cast<uintptr_t>(SDL_event.user.data1);

@@ -5,6 +5,7 @@
 #ifndef __IRR_OS_H_INCLUDED__
 #define __IRR_OS_H_INCLUDED__
 
+#include "stdio.h"
 #include "IrrCompileConfig.h" // for endian check
 #include "irrTypes.h"
 #include "irrString.h"
