@@ -30,12 +30,16 @@
 
 #pragma once
 
+#ifndef _SWITCH_
+#define _SWITCH_
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <cstddef>
 
-#ifdef _WIN32
+#if defined(_SWITCH_) || defined(_WIN32)
 #define __BYTE_ORDER 0
 #define __LITTLE_ENDIAN 0
 #define __BIG_ENDIAN 1

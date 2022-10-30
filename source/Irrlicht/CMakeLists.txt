@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	set(CMAKE_CXX_FLAGS_DEBUG "-g")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g2 -O0")
 
 	add_compile_options(-Wall -pipe -fno-exceptions -fno-rtti)
 
@@ -61,6 +61,13 @@ endif()
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(PNG REQUIRED)
+
+if(SWITCH)		
+	set(SDL2_INCLUDEDIR "/opt/devkitpro/portlibs/switch/include/")
+	include_directories("${SDL2_INCLUDEDIR}")
+	set(SDL2_INCLUDEDIR "/opt/devkitpro/portlibs/switch/include/SDL2")
+	include_directories("${SDL2_INCLUDEDIR}")
+endif()
 
 # To configure the features available in this Irrlicht build please edit include/IrrCompileConfig.h.
 include(CheckSymbolExists)
@@ -135,6 +142,7 @@ set(link_includes
 	${X11_INCLUDE_DIR}
 )
 
+if(!SWITCH)
 set(link_libs
 	"${ZLIB_LIBRARY}"
 	"${JPEG_LIBRARY}"
@@ -154,6 +162,30 @@ set(link_libs
 	${X11_X11_LIB}
 	${X11_Xi_LIB}
 )
+
+else
+set(link_libs
+	"${ZLIB_LIBRARY}"
+	"${JPEG_LIBRARY}"
+	"${PNG_LIBRARY}"
+	"${SDL2_LIBRARIES}"
+
+	${OPENGL_LIBRARIES}
+	${OPENGLES_LIBRARY}
+	${OPENGLES2_LIBRARIES}
+	${EGL_LIBRARY}
+
+	"$<$<PLATFORM_ID:Android>:native_app_glue -landroid -llog>"
+	${COCOA_LIB}
+	${IOKIT_LIB}
+	"$<$<PLATFORM_ID:Windows>:gdi32>"
+	"$<$<PLATFORM_ID:Windows>:winmm>"
+	${X11_X11_LIB}
+	${X11_Xi_LIB}
+	-lSDL2
+	-lglad
+)
+endif()
 
 # Source files
 
@@ -183,8 +215,9 @@ add_library(IRROBJ OBJECT
 )
 
 set(IRRDRVROBJ
-	CNullDriver.cpp
+	gl.c
 	COpenGLCacheHandler.cpp
+	CNullDriver.cpp
 	COpenGLDriver.cpp
 	COpenGLShaderMaterialRenderer.cpp
 	COpenGLSLMaterialRenderer.cpp

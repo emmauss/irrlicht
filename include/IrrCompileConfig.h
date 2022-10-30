@@ -9,6 +9,9 @@
 #define IRRLICHT_VERSION_MT_REVISION 9
 #define IRRLICHT_VERSION_MT "mt9"
 
+#ifndef __SWITCH__
+#define __SWITCH__
+#endif
 //! Irrlicht SDK Version
 #define IRRLICHT_VERSION_MAJOR 1
 #define IRRLICHT_VERSION_MINOR 9

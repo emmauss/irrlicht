@@ -25,6 +25,9 @@ namespace irr
 #include "COpenGLExtensionHandler.h"
 #include "IContextManager.h"
 
+#include <SDL.h>
+#include <glad/gl.h>
+
 namespace irr
 {
 

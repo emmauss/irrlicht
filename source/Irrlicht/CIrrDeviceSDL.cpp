@@ -17,6 +17,12 @@
 #include <stdlib.h>
 #include "SIrrCreationParameters.h"
 #include <SDL_video.h>
+#ifdef __SWITCH__
+#include <SDL_syswm.h>
+#include <SDL_video.h>
+#include <SDL.h>
+#include <glad/gl.h>
+#endif
 
 #ifdef _IRR_EMSCRIPTEN_PLATFORM_
 #ifdef _IRR_COMPILE_WITH_OGLES2_
@@ -105,6 +111,8 @@ EM_BOOL CIrrDeviceSDL::MouseLeaveCallback(int eventType, const EmscriptenMouseEv
 }
 #endif
 
+float g_native_scale_x = 1.0f;
+float g_native_scale_y = 1.0f;
 //! constructor
 CIrrDeviceSDL::CIrrDeviceSDL(const SIrrlichtCreationParameters& param)
 	: CIrrDeviceStub(param),
@@ -394,7 +402,7 @@ void CIrrDeviceSDL::createDriver()
 		VideoDriver = video::createOpenGLDriver(CreationParams, FileSystem, ContextManager);
 		#else
 		os::Printer::log("No OpenGL support compiled in.", ELL_ERROR);
-		#endif
+#endif
 		break;
 
 	case video::EDT_OGLES2:
@@ -618,7 +626,7 @@ bool CIrrDeviceSDL::run()
 
 				EKEY_CODE key;
 				if (idx == -1)
-					key = (EKEY_CODE)0;
+						key = (EKEY_CODE)0;
 				else
 					key = (EKEY_CODE)KeyMap[idx].Win32Key;
 
@@ -769,13 +777,13 @@ bool CIrrDeviceSDL::run()
 //! Activate any joysticks, and generate events for them.
 bool CIrrDeviceSDL::activateJoysticks(core::array<SJoystickInfo> & joystickInfo)
 {
-#if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
-	joystickInfo.clear();
+	#if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
+		joystickInfo.clear();
 
-	// we can name up to 256 different joysticks
-	const int numJoysticks = core::min_(SDL_NumJoysticks(), 256);
-	Joysticks.reallocate(numJoysticks);
-	joystickInfo.reallocate(numJoysticks);
+		// we can name up to 256 different joysticks
+		const int numJoysticks = core::min_(SDL_NumJoysticks(), 256);
+		Joysticks.reallocate(numJoysticks);
+		joystickInfo.reallocate(numJoysticks);
 
 	int joystick = 0;
 	for (; joystick<numJoysticks; ++joystick)
@@ -790,8 +798,8 @@ bool CIrrDeviceSDL::activateJoysticks(core::array<SJoystickInfo> & joystickInfo)
 		info.PovHat = (SDL_JoystickNumHats(Joysticks[joystick]) > 0)
 						? SJoystickInfo::POV_HAT_PRESENT : SJoystickInfo::POV_HAT_ABSENT;
 
-		joystickInfo.push_back(info);
-	}
+			joystickInfo.push_back(info);
+		}
 
 	for(joystick = 0; joystick < (int)joystickInfo.size(); ++joystick)
 	{
@@ -802,11 +810,11 @@ bool CIrrDeviceSDL::activateJoysticks(core::array<SJoystickInfo> & joystickInfo)
 		os::Printer::log(logString, ELL_INFORMATION);
 	}
 
-	return true;
+		return true;
 
-#endif // _IRR_COMPILE_WITH_JOYSTICK_EVENTS_
+	#endif // _IRR_COMPILE_WITH_JOYSTICK_EVENTS_
 
-	return false;
+		return false;
 }
 
 void CIrrDeviceSDL::SwapWindow()
